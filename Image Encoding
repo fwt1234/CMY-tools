@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplified CMY Image Processing Tool</title>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --success: #34a853;
+            --danger: #ea4335;
+            --light: #f5f5f5;
+            --dark: #333;
+            --border: #ddd;
+            --warning: #fbbc05;
+            --info: #17a2b8;
+            --purple: #9c27b0;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: #f9f9f9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .window-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .window {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            background: white;
+            position: relative;
+        }
+        .window-title {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        h2 {
+            color: var(--success);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            resize: vertical;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            display: block;
+            margin: 15px auto;
+            border: 1px solid var(--border);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+            min-width: 120px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button.success {
+            background: var(--success);
+        }
+        button.danger {
+            background: var(--danger);
+        }
+        button.warning {
+            background: var(--warning);
+        }
+        button.info {
+            background: var(--info);
+        }
+        button.purple {
+            background: var(--purple);
+        }
+        .status {
+            font-size: 0.9em;
+            color: #666;
+            margin: 10px 0;
+            padding: 8px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: #777;
+        }
+        @media (max-width: 768px) {
+            .window-container {
+                flex-direction: column;
+            }
+            .window {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simplified CMY Image Processing Tool</h1>
+            <p>Encoding/Decoding · Image Reconstruction · Base64 Conversion</p>
+        </header>
+        
+        <!-- Window 1: Code Decoding -->
+        <div class="window-container">
+            <div class="window" style="border-top: 3px solid var(--info);">
+                <div class="window-title">Window 1: Code Decoding</div>
+                <h2>Decode Encoded Data</h2>
+                <div class="form-group">
+                    <label for="decodeInput">Input encoded data:</label>
+                    <textarea id="decodeInput" placeholder="Paste encoded data here..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Image dimensions:</label>
+                    <div style="display: flex; gap: 15px;">
+                        <div>
+                            <label for="decodeWidth">Width:</label>
+                            <input type="number" id="decodeWidth" min="1" value="100">
+                        </div>
+                        <div>
+                            <label for="decodeHeight">Height:</label>
+                            <input type="number" id="decodeHeight" min="1" value="100">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="status" id="decodeStatus">Waiting for encoded data input...</div>
+                <div class="progress-container" id="decodeProgress" style="display:none;">
+                    <div class="progress-bar" id="decodeProgressBar"></div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="startDecodeBtn">Start Decoding</button>
+                    <button id="resetDecodeBtn" class="danger">Reset</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="decodedOutput">Decoded CMY data:</label>
+                    <textarea id="decodedOutput" placeholder="Decoded results will appear here..." readonly></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button id="downloadDecodedBtn" class="success" disabled>Download Decoded</button>
+                    <button id="copyDecodedBtn" class="success" disabled>Copy Decoded</button>
+                    <button id="sendToReconstructBtn" class="info" disabled>Send to Window 2</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Window 2: Image Reconstruction -->
+        <div class="window-container">
+            <div class="window" style="border-top: 3px solid var(--success);">
+                <div class="window-title">Window 2: Image Reconstruction</div>
+                <h2>Reconstruct Image from CMY Data</h2>
+                <div class="form-group">
+                    <label>Image dimensions:</label>
+                    <div style="display: flex; gap: 15px;">
+                        <div>
+                            <label for="width">Width:</label>
+                            <input type="number" id="width" min="1" value="100">
+                        </div>
+                        <div>
+                            <label for="height">Height:</label>
+                            <input type="number" id="height" min="1" value="100">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cmyInput">CMY data (0-1 range):</label>
+                    <textarea id="cmyInput" placeholder="Paste CMY data here..."></textarea>
+                </div>
+                
+                <div class="status" id="reconstructStatus">Waiting for CMY data input...</div>
+                <div class="progress-container" id="reconstructProgress" style="display:none;">
+                    <div class="progress-bar" id="reconstructProgressBar"></div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="reconstructBtn">Reconstruct Image</button>
+                    <button id="resetReconstructBtn" class="danger">Reset</button>
+                </div>
+                
+                <img id="reconstructedImg" class="image-preview" style="display:none;">
+                
+                <div class="button-group">
+                    <button id="downloadImgBtn" class="success" disabled>Download Image</button>
+                    <button id="sendToBase64Btn" class="info" disabled>Send to Window 3</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Window 3: Image to Base64 -->
+        <div class="window-container">
+            <div class="window" style="border-top: 3px solid var(--purple);">
+                <div class="window-title">Window 3: Image to Base64</div>
+                <h2>Convert PNG to Base64</h2>
+                
+                <img id="base64PreviewImg" class="image-preview" style="display:none;">
+                
+                <div class="status" id="base64Status">Waiting for image input...</div>
+                
+                <div class="form-group">
+                    <label for="base64Output">Base64 encoding:</label>
+                    <textarea id="base64Output" placeholder="Base64 encoding will appear here..." readonly></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button id="copyBase64Btn" class="success" disabled>Copy Base64</button>
+                    <button id="resetBase64Btn" class="danger">Reset</button>
+                    <button id="sendToDecodeBase64Btn" class="info" disabled>Send to Window 4</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Window 4: Base64 to PNG -->
+        <div class="window-container">
+            <div class="window" style="border-top: 3px solid var(--warning);">
+                <div class="window-title">Window 4: Base64 to PNG</div>
+                <h2>Convert Base64 to PNG Image</h2>
+                
+                <div class="form-group">
+                    <label for="base64DecodeInput">Input Base64 data:</label>
+                    <textarea id="base64DecodeInput" placeholder="Paste Base64 encoded image data here..."></textarea>
+                </div>
+                
+                <div class="status" id="base64DecodeStatus">Waiting for Base64 data input...</div>
+                
+                <div class="button-group">
+                    <button id="decodeBase64Btn">Decode Base64</button>
+                    <button id="resetBase64DecodeBtn" class="danger">Reset</button>
+                </div>
+                
+                <img id="base64DecodedImg" class="image-preview" style="display:none;">
+                
+                <div class="button-group">
+                    <button id="downloadBase64DecodedBtn" class="success" disabled>Download PNG</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Simplified CMY Image Processing Tool | Client-side Processing</p>
+        </footer>
+    </div>
+
+    <script>
+        // Color conversion functions
+        function normalizedCmyToRgb(c, m, y) {
+            return {
+                r: Math.round((1 - parseFloat(c)) * 255),
+                g: Math.round((1 - parseFloat(m)) * 255),
+                b: Math.round((1 - parseFloat(y)) * 255)
+            };
+        }
+
+        // Window 1: Code Decoding
+        const decodeInput = document.getElementById('decodeInput');
+        const decodeWidth = document.getElementById('decodeWidth');
+        const decodeHeight = document.getElementById('decodeHeight');
+        const startDecodeBtn = document.getElementById('startDecodeBtn');
+        const decodedOutput = document.getElementById('decodedOutput');
+        const downloadDecodedBtn = document.getElementById('downloadDecodedBtn');
+        const copyDecodedBtn = document.getElementById('copyDecodedBtn');
+        const sendToReconstructBtn = document.getElementById('sendToReconstructBtn');
+        const decodeStatus = document.getElementById('decodeStatus');
+        const decodeProgress = document.getElementById('decodeProgress');
+        const decodeProgressBar = document.getElementById('decodeProgressBar');
+        const resetDecodeBtn = document.getElementById('resetDecodeBtn');
+
+        // Modified decoding function
+        function decodeToCmy(encodedText, width, height) {
+            const lines = encodedText.split('\n');
+            let cmyText = `# Decoded CMY data dimensions: ${width}x${height}\n`;
+            cmyText += `# Format: x,y: c,m,y\n`;
+            
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+                
+                const parts = trimmedLine.split(':');
+                const coords = parts[0].split(',');
+                const code = parts[1] ? parts[1].trim() : '';
+                
+                if (coords.length >= 2 && code) {
+                    const x = coords[0].trim();
+                    const y = coords[1].trim();
+                    let c, m, yVal;
+                    
+                    // Modified decoding rules
+                    switch(code) {
+                        case '00':
+                            c = '0'; m = '0'; yVal = '1';  // 00 → 0,0,1
+                            break;
+                        case '01':
+                            c = '0.6'; m = '0'; yVal = '0.6';  // 01 → 0.6,0,0.6
+                            break;
+                        case '10':
+                            c = '0'; m = '1'; yVal = '0';  // 10 → 0,1,0
+                            break;
+                        case '11':
+                            c = '1'; m = '0'; yVal = '0';  // 11 → 1,0,0
+                            break;
+                        case 'OFF':
+                            c = '0'; m = '0'; yVal = '0';  // OFF → 0,0,0
+                            break;
+                        default:
+                            c = '0'; m = '0'; yVal = '0';
+                    }
+                    
+                    cmyText += `${x},${y}: ${c},${m},${yVal}\n`;
+                }
+            }
+            
+            return cmyText;
+        }
+
+        startDecodeBtn.addEventListener('click', function() {
+            const encodedText = decodeInput.value.trim();
+            const width = parseInt(decodeWidth.value);
+            const height = parseInt(decodeHeight.value);
+            
+            if (!encodedText) {
+                decodeStatus.textContent = "Please input encoded data";
+                return;
+            }
+            
+            if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+                decodeStatus.textContent = "Please enter valid width and height";
+                return;
+            }
+            
+            decodeStatus.textContent = "Decoding data...";
+            startDecodeBtn.disabled = true;
+            decodeProgress.style.display = 'block';
+            
+            setTimeout(() => {
+                try {
+                    const decodedResult = decodeToCmy(encodedText, width, height);
+                    decodedOutput.value = decodedResult;
+                    downloadDecodedBtn.disabled = false;
+                    copyDecodedBtn.disabled = false;
+                    sendToReconstructBtn.disabled = false;
+                    decodeStatus.textContent = "Decoding completed!";
+                } catch (e) {
+                    decodeStatus.textContent = "Decoding error: " + e.message;
+                } finally {
+                    startDecodeBtn.disabled = false;
+                    decodeProgress.style.display = 'none';
+                }
+            }, 100);
+        });
+
+        downloadDecodedBtn.addEventListener('click', function() {
+            if (!decodedOutput.value) return;
+            
+            const blob = new Blob([decodedOutput.value], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'decoded_cmy_data.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        copyDecodedBtn.addEventListener('click', function() {
+            if (!decodedOutput.value) return;
+            
+            decodedOutput.select();
+            document.execCommand('copy');
+            decodeStatus.textContent = "Decoded data copied!";
+            setTimeout(() => {
+                decodeStatus.textContent = "Decoded data ready";
+            }, 2000);
+        });
+
+        sendToReconstructBtn.addEventListener('click', function() {
+            if (!decodedOutput.value) return;
+            
+            document.getElementById('cmyInput').value = decodedOutput.value;
+            document.getElementById('width').value = decodeWidth.value;
+            document.getElementById('height').value = decodeHeight.value;
+            document.getElementById('reconstructStatus').textContent = "CMY data imported from Window 1";
+        });
+
+        resetDecodeBtn.addEventListener('click', function() {
+            decodeInput.value = '';
+            decodedOutput.value = '';
+            decodeStatus.textContent = 'Waiting for encoded data input...';
+            decodeProgress.style.display = 'none';
+            downloadDecodedBtn.disabled = true;
+            copyDecodedBtn.disabled = true;
+            sendToReconstructBtn.disabled = true;
+        });
+
+        // Window 2: Image Reconstruction
+        const cmyInput = document.getElementById('cmyInput');
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        const reconstructBtn = document.getElementById('reconstructBtn');
+        const reconstructedImg = document.getElementById('reconstructedImg');
+        const downloadImgBtn = document.getElementById('downloadImgBtn');
+        const sendToBase64Btn = document.getElementById('sendToBase64Btn');
+        const reconstructStatus = document.getElementById('reconstructStatus');
+        const reconstructProgress = document.getElementById('reconstructProgress');
+        const reconstructProgressBar = document.getElementById('reconstructProgressBar');
+        const resetReconstructBtn = document.getElementById('resetReconstructBtn');
+        
+        reconstructBtn.addEventListener('click', function() {
+            const width = parseInt(widthInput.value);
+            const height = parseInt(heightInput.value);
+            const cmyText = cmyInput.value.trim();
+            
+            if (!cmyText) {
+                reconstructStatus.textContent = "Please input CMY data";
+                return;
+            }
+            
+            if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+                reconstructStatus.textContent = "Please enter valid width and height";
+                return;
+            }
+            
+            reconstructStatus.textContent = "Reconstructing image...";
+            reconstructBtn.disabled = true;
+            reconstructProgress.style.display = 'block';
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(width, height);
+            
+            // Initialize white background
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                imageData.data[i] = 255;
+                imageData.data[i + 1] = 255;
+                imageData.data[i + 2] = 255;
+                imageData.data[i + 3] = 255;
+            }
+            
+            // Parse original dimensions
+            let originalWidth = 0, originalHeight = 0;
+            const sizeLine = cmyText.split('\n')[0];
+            const sizeMatch = sizeLine.match(/# Decoded CMY data dimensions: (\d+)x(\d+)/);
+            if (sizeMatch) {
+                originalWidth = parseInt(sizeMatch[1]);
+                originalHeight = parseInt(sizeMatch[2]);
+            }
+            
+            // Calculate width/height ratios
+            const widthRatio = originalWidth > 0 ? width / originalWidth : 1;
+            const heightRatio = originalHeight > 0 ? height / originalHeight : 1;
+            
+            const lines = cmyText.split('\n');
+            let validPixels = 0;
+            let currentLine = 0;
+            const totalLines = lines.length;
+            
+            function processBatch(batchSize) {
+                const end = Math.min(currentLine + batchSize, totalLines);
+                
+                for (let i = currentLine; i < end; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.startsWith('#')) continue;
+                    
+                    const parts = line.split(':');
+                    const coords = parts[0].split(',');
+                    const values = parts[1] ? parts[1].split(',') : coords;
+                    
+                    try {
+                        let x, y, c, m, yVal;
+                        
+                        if (parts.length > 1 && coords.length >= 2) {
+                            // Original coordinates
+                            const origX = parseInt(coords[0].trim());
+                            const origY = parseInt(coords[1].trim());
+                            
+                            // Calculate new coordinates
+                            x = Math.round(origX * widthRatio);
+                            y = Math.round(origY * heightRatio);
+                            
+                            c = parseFloat(values[0].trim());
+                            m = parseFloat(values[1].trim());
+                            yVal = parseFloat(values[2].trim());
+                            
+                            // Apply modified CMY values
+                            if (c === 1 && m === 0 && yVal === 0) {
+                                // 1,0,0 → 1,0.25,0.04
+                                c = 1; m = 0.25; yVal = 0.04;
+                            } else if (c === 0 && m === 1 && yVal === 0) {
+                                // 0,1,0 → 0,0.8,0.04
+                                c = 0; m = 0.8; yVal = 0.04;
+                            } else if (c === 0 && m === 0 && yVal === 1) {
+                                // 0,0,1 → 0,0,0.8
+                                c = 0; m = 0; yVal = 0.8;
+                            } else if (c === 0.6 && m === 0 && yVal === 0.6) {
+                                // 0.6,0,0.6 → 0.8,0,0.8
+                                c = 0.8; m = 0; yVal = 0.8;
+                            } else if (c === 0 && m === 0 && yVal === 0) {
+                                // 0,0,0 → 0,0,0
+                                c = 0; m = 0; yVal = 0;
+                            }
+                        } else if (values.length >= 3) {
+                            // If no coordinates, fill sequentially
+                            x = validPixels % width;
+                            y = Math.floor(validPixels / width);
+                            c = parseFloat(values[0].trim());
+                            m = parseFloat(values[1].trim());
+                            yVal = parseFloat(values[2].trim());
+                            
+                            // Apply modified CMY values
+                            if (c === 1 && m === 0 && yVal === 0) {
+                                c = 1; m = 0.25; yVal = 0.04;
+                            } else if (c === 0 && m === 1 && yVal === 0) {
+                                c = 0; m = 0.8; yVal = 0.04;
+                            } else if (c === 0 && m === 0 && yVal === 1) {
+                                c = 0; m = 0; yVal = 0.8;
+                            } else if (c === 0.6 && m === 0 && yVal === 0.6) {
+                                c = 0.8; m = 0; yVal = 0.8;
+                            } else if (c === 0 && m === 0 && yVal === 0) {
+                                c = 0; m = 0; yVal = 0;
+                            }
+                        } else {
+                            continue;
+                        }
+                        
+                        // Ensure coordinates are within valid range
+                        x = Math.max(0, Math.min(width - 1, x));
+                        y = Math.max(0, Math.min(height - 1, y));
+                        
+                        const idx = (y * width + x) * 4;
+                        const {r, g, b} = normalizedCmyToRgb(c, m, yVal);
+                        
+                        imageData.data[idx] = r;
+                        imageData.data[idx + 1] = g;
+                        imageData.data[idx + 2] = b;
+                        validPixels++;
+                    } catch (e) {
+                        console.warn("Failed to parse line:", line, "Error:", e);
+                    }
+                    
+                    currentLine++;
+                }
+                
+                const progress = (currentLine / totalLines) * 100;
+                reconstructProgressBar.style.width = `${progress}%`;
+                reconstructStatus.textContent = `Processed ${currentLine}/${totalLines} lines`;
+                
+                if (currentLine < totalLines) {
+                    setTimeout(() => processBatch(1000), 0);
+                } else {
+                    // Apply smoothing
+                    ctx.putImageData(imageData, 0, 0);
+                    
+                    // Maintain original aspect ratio if needed
+                    if (originalWidth > 0 && originalHeight > 0) {
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = originalWidth;
+                        tempCanvas.height = originalHeight;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        
+                        // Draw to temporary canvas
+                        tempCtx.drawImage(canvas, 0, 0, originalWidth, originalHeight);
+                        
+                        // Scale back to target dimensions
+                        ctx.clearRect(0, 0, width, height);
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(tempCanvas, 0, 0, width, height);
+                    }
+                    
+                    reconstructedImg.src = canvas.toDataURL('image/png');
+                    reconstructedImg.style.display = 'block';
+                    downloadImgBtn.disabled = false;
+                    sendToBase64Btn.disabled = false;
+                    reconstructStatus.textContent = `Reconstruction complete! Valid pixels: ${validPixels}`;
+                    reconstructBtn.disabled = false;
+                }
+            }
+            
+            processBatch(1000);
+        });
+        
+        downloadImgBtn.addEventListener('click', function() {
+            if (!reconstructedImg.src) return;
+            
+            const a = document.createElement('a');
+            a.href = reconstructedImg.src;
+            a.download = 'reconstructed_image.png';
+            a.click();
+        });
+        
+        sendToBase64Btn.addEventListener('click', function() {
+            if (!reconstructedImg.src) return;
+            
+            document.getElementById('base64PreviewImg').src = reconstructedImg.src;
+            document.getElementById('base64PreviewImg').style.display = 'block';
+            document.getElementById('base64Output').value = reconstructedImg.src;
+            document.getElementById('copyBase64Btn').disabled = false;
+            document.getElementById('sendToDecodeBase64Btn').disabled = false;
+            document.getElementById('base64Status').textContent = "Image converted to Base64";
+        });
+        
+        resetReconstructBtn.addEventListener('click', function() {
+            cmyInput.value = '';
+            widthInput.value = '100';
+            heightInput.value = '100';
+            reconstructedImg.src = '';
+            reconstructedImg.style.display = 'none';
+            reconstructStatus.textContent = 'Waiting for CMY data input...';
+            reconstructProgress.style.display = 'none';
+            downloadImgBtn.disabled = true;
+            sendToBase64Btn.disabled = true;
+        });
+
+        // Window 3: Image to Base64
+        const base64PreviewImg = document.getElementById('base64PreviewImg');
+        const base64Output = document.getElementById('base64Output');
+        const copyBase64Btn = document.getElementById('copyBase64Btn');
+        const resetBase64Btn = document.getElementById('resetBase64Btn');
+        const sendToDecodeBase64Btn = document.getElementById('sendToDecodeBase64Btn');
+        const base64Status = document.getElementById('base64Status');
+        
+        copyBase64Btn.addEventListener('click', function() {
+            if (!base64Output.value) return;
+            
+            base64Output.select();
+            document.execCommand('copy');
+            base64Status.textContent = "Base64 encoding copied!";
+            setTimeout(() => {
+                base64Status.textContent = "Base64 encoding ready";
+            }, 2000);
+        });
+        
+        resetBase64Btn.addEventListener('click', function() {
+            base64PreviewImg.src = '';
+            base64PreviewImg.style.display = 'none';
+            base64Output.value = '';
+            base64Status.textContent = 'Waiting for image input...';
+            copyBase64Btn.disabled = true;
+            sendToDecodeBase64Btn.disabled = true;
+        });
+
+        sendToDecodeBase64Btn.addEventListener('click', function() {
+            if (!base64Output.value) return;
+            
+            document.getElementById('base64DecodeInput').value = base64Output.value;
+            document.getElementById('base64DecodeStatus').textContent = "Base64 data imported from Window 3";
+        });
+
+        // Window 4: Base64 to PNG
+        const base64DecodeInput = document.getElementById('base64DecodeInput');
+        const decodeBase64Btn = document.getElementById('decodeBase64Btn');
+        const base64DecodedImg = document.getElementById('base64DecodedImg');
+        const downloadBase64DecodedBtn = document.getElementById('downloadBase64DecodedBtn');
+        const base64DecodeStatus = document.getElementById('base64DecodeStatus');
+        const resetBase64DecodeBtn = document.getElementById('resetBase64DecodeBtn');
+
+        decodeBase64Btn.addEventListener('click', function() {
+            const base64Data = base64DecodeInput.value.trim();
+            
+            if (!base64Data) {
+                base64DecodeStatus.textContent = "Please input Base64 data";
+                return;
+            }
+            
+            try {
+                // Check if it's valid Base64 image data
+                if (!base64Data.startsWith('data:image/')) {
+                    base64DecodeStatus.textContent = "Please enter valid Base64 image data (starting with 'data:image/')";
+                    return;
+                }
+                
+                base64DecodedImg.src = base64Data;
+                base64DecodedImg.style.display = 'block';
+                downloadBase64DecodedBtn.disabled = false;
+                base64DecodeStatus.textContent = "Base64 decoded successfully!";
+            } catch (e) {
+                base64DecodeStatus.textContent = "Decoding failed: " + e.message;
+            }
+        });
+        
+        downloadBase64DecodedBtn.addEventListener('click', function() {
+            if (!base64DecodedImg.src) return;
+            
+            const a = document.createElement('a');
+            a.href = base64DecodedImg.src;
+            a.download = 'decoded_image.png';
+            a.click();
+        });
+        
+        resetBase64DecodeBtn.addEventListener('click', function() {
+            base64DecodeInput.value = '';
+            base64DecodedImg.src = '';
+            base64DecodedImg.style.display = 'none';
+            base64DecodeStatus.textContent = 'Waiting for Base64 data input...';
+            downloadBase64DecodedBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>
